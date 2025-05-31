@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Network Graph</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <style>
+    #network {
+      width: 100%;
+      height: 600px;
+      border: 1px solid lightgray;
+    }
+  </style>
+</head>
+<body>
+  <div id="network"></div>
+  <script>
+    const nodesUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRKadg5E6jy11lRY9g03Xfb1DA2LtydRsRzbLb3o7D9tz9GbVKrnwX-rHzqFit8qMAcvyf6i24YEvUu/pub?gid=0&single=true&output=csv';
+    const edgesUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRKadg5E6jy11lRY9g03Xfb1DA2LtydRsRzbLb3o7D9tz9GbVKrnwX-rHzqFit8qMAcvyf6i24YEvUu/pub?gid=1611879237&single=true&output=csv';
+
+    Promise.all([
+      fetch(nodesUrl).then(res => res.text()),
+      fetch(edgesUrl).then(res => res.text())
+    ]).then(([nodesCsv, edgesCsv]) => {
+      const nodesData = Papa.parse(nodesCsv, { header: true }).data;
+      const edgesData = Papa.parse(edgesCsv, { header: true }).data;
+
+      const nodes = new vis.DataSet(nodesData.map(n => ({
+        id: n.id,
+        label: n.label,
+        group: n.group,
+        color: n.color
+      })));
+
+      const edges = new vis.DataSet(edgesData.map(e => ({
+        from: e.from,
+        to: e.to,
+        label: e.label
+      })));
+
+      const container = document.getElementById('network');
+      const data = { nodes, edges };
+      const options = {
+        nodes: {
+          shape: 'dot',
+          size: 16,
+          font: {
+            size: 14,
+            color: '#000'
+          }
+        },
+        edges: {
+          width: 2,
+          color: { inherit: 'from' },
+          smooth: {
+            type: 'continuous'
+          }
+        },
+        physics: {
+          stabilization: false
+        }
+      };
+      new vis.Network(container, data, options);
+    });
+  </script>
+</body>
+</html>
